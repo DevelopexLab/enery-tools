@@ -1,2333 +1,269 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enery - Intercompany Loan Interest Rate Tool</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%238CC896'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>E</text></svg>">
-  <style>
-    body { margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif; }
-  </style>
-  <!--
-    PRE-COMPILED VERSION for SharePoint / Teams hosting.
-    - Babel removed (JSX pre-compiled to React.createElement calls)
-    - Google Fonts removed (uses Segoe UI, the Microsoft system font)
-    - React + ReactDOM still loaded from CDN (cdnjs.cloudflare.com)
-    
-    IF this still doesn't render in your SharePoint, the CDN is also blocked.
-    In that case, you'll need to host this via one of:
-      (a) SharePoint "Embed" web part pointing to an externally hosted URL
-      (b) A Power Apps portal
-      (c) Azure Static Web App (free tier, no IT needed)
-    See the deployment guide for instructions.
-  -->
-  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enery · Finance Tools</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%238CC896'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>E</text></svg>">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700&display=swap');
+
+:root {
+  --green: #8CC896;
+  --green-dark: #6aad76;
+  --yellow: #FABE4B;
+  --panel: #232D32;
+  --panel-light: #465055;
+  --panel-muted: #6E7378;
+  --sand: #F5F0EB;
+  --sand-dark: #EDE8E2;
+  --white: #FFFFFF;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  background: var(--sand);
+  color: var(--panel);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+header {
+  background: var(--panel);
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--green);
+}
+.logo-area { display: flex; align-items: center; gap: 16px; }
+.logo-area svg { height: 36px; width: auto; }
+.logo-divider { width: 1px; height: 28px; background: rgba(255,255,255,.15); }
+.logo-text { color: var(--sand); font-size: 14px; font-weight: 300; opacity: .7; line-height: 1.3; }
+.header-tag {
+  color: #9196A0; font-size: 11px; font-weight: 300;
+  background: rgba(255,255,255,.06); border-radius: 6px; padding: 4px 12px;
+}
+
+/* MAIN */
+main {
+  flex: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+  width: 100%;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--panel);
+  margin-bottom: 4px;
+}
+.page-subtitle {
+  font-size: 15px;
+  color: var(--panel-muted);
+  margin-bottom: 40px;
+  font-weight: 400;
+}
+
+/* TOOL CARDS */
+.tools-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.tool-card {
+  background: var(--white);
+  border: 1px solid #B9BEC3;
+  border-radius: 16px;
+  padding: 32px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 16px 16px 0 0;
+  transition: height .25s ease;
+}
+.tool-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(35,45,50,.12);
+  border-color: var(--green);
+}
+.tool-card:hover::before { height: 4px; }
+
+.tool-card--rates::before { background: var(--green); }
+.tool-card--compliance::before { background: var(--yellow); }
+
+.tool-icon {
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+.tool-card--rates .tool-icon { background: #e8f5e9; }
+.tool-card--compliance .tool-icon { background: #FFF8E1; }
+
+.tool-name {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--panel);
+  margin-bottom: 8px;
+}
+.tool-desc {
+  font-size: 13px;
+  color: var(--panel-muted);
+  line-height: 1.65;
+  flex: 1;
+  margin-bottom: 20px;
+}
+.tool-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.tool-tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: .3px;
+}
+.tool-tag--green { background: #e8f5e9; color: #2e7d32; }
+.tool-tag--yellow { background: #FFF8E1; color: #f57f17; }
+.tool-tag--blue { background: #E3F2FD; color: #1565C0; }
+.tool-tag--grey { background: #ECEFF1; color: #546E7A; }
+
+.tool-launch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--panel);
+  transition: gap .2s ease;
+}
+.tool-card:hover .tool-launch { gap: 12px; }
+.tool-launch-arrow {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s ease;
+}
+.tool-card--rates .tool-launch-arrow { background: var(--green); color: white; }
+.tool-card--compliance .tool-launch-arrow { background: var(--yellow); color: var(--panel); }
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 20px 24px;
+  border-top: 1px solid var(--sand-dark);
+  font-size: 11px;
+  color: #9196A0;
+  line-height: 1.6;
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .tools-grid { grid-template-columns: 1fr; }
+  header { padding: 0 16px; }
+  main { padding: 32px 16px 48px; }
+  .page-title { font-size: 22px; }
+}
+
+/* ANIMATION */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.tool-card { animation: fadeUp .5s ease-out backwards; }
+.tool-card:nth-child(2) { animation-delay: .1s; }
+</style>
 </head>
 <body>
-  <div id="root"></div>
-  <script>
-const {
-  useState,
-  useMemo
-} = React;
 
-// ============================================================
-// ENERY INTERCOMPANY LOAN - ARM'S LENGTH INTEREST RATE TOOL
-// Based on WTS Transfer Pricing Benchmarking Analysis (Nov 2025)
-// ============================================================
+<!-- HEADER -->
+<header>
+  <div class="logo-area">
+    <svg viewBox="0 0 519 170.2" xmlns="http://www.w3.org/2000/svg"><g><path d="M190.3 124.8 190.3 78.3C190.3 75.2 190 72.7 189.5 70.7 189 68.7 188.1 67.2 186.9 66.1 185.7 65 184 64.2 181.8 63.7 179.7 63.2 176.9 63 173.7 63L151.6 63C148.4 63 145.7 63.2 143.6 63.7 141.5 64.2 139.7 65 138.5 66.1 137.2 67.2 136.3 68.8 135.8 70.7 135.3 72.7 135 75.2 135 78.3L135 124.8 114.6 124.8 114.6 77.6C114.6 71.7 115.2 66.7 116.3 62.6 117.4 58.5 119.4 55.2 122.1 52.7 124.8 50.2 128.5 48.4 133 47.2 137.6 46.1 143.2 45.5 150.1 45.5L175 45.5C181.9 45.5 187.7 46.1 192.2 47.2 196.8 48.3 200.4 50.2 203.1 52.7 205.8 55.2 207.8 58.5 208.9 62.6 210 66.7 210.6 71.7 210.6 77.6L210.6 124.8 190.3 124.8Z" fill="#FFFFFF"/><path d="M347.2 124.8 347.2 76.6C347.2 71 347.8 66.3 349.1 62.4 350.4 58.5 352.4 55.3 355.2 52.8 358 50.3 361.6 48.5 365.9 47.3 370.3 46.1 375.6 45.5 381.9 45.5L400.4 45.5 400.4 62 382.4 62C379.6 62 377.2 62.2 375.3 62.7 373.4 63.2 371.9 63.9 370.7 65 369.6 66.1 368.7 67.6 368.2 69.5 367.7 71.4 367.5 73.8 367.5 76.7L367.5 124.7 347.2 124.7 347.2 124.8Z" fill="#FFFFFF"/><path d="M442.1 83.6C442.1 87.7 443 90.5 444.8 92.1 446.6 93.7 449.6 94.5 453.7 94.5L499.2 94.5 499.2 45.1 519 45.1 519 117.8C519 126.1 516.9 132.1 512.9 135.8 508.8 139.5 502.1 141.3 492.8 141.3L463.2 141.3 463.2 124.6 491.1 124.6C493.9 124.6 496 124.1 497.3 123 498.6 121.9 499.3 119.8 499.3 116.7L499.3 110.7 452.6 110.7C447 110.7 442.3 110.2 438.5 109.1 434.6 108.1 431.5 106.4 429.1 104.2 426.7 102 424.9 99.3 423.8 96 422.7 92.7 422.2 88.9 422.2 84.4L422.2 45.1 442.3 45.1 442.3 83.6 442.1 83.6Z" fill="#FFFFFF"/><g><path d="M82.5 94.6C87.7 94.6 92 90.3 92 85.1 92 79.9 87.7 75.6 82.5 75.6L19.2 75.6 19.2 65.8 82.5 65.8C87.7 65.8 92 61.5 92 56.3 92 51.1 87.7 46.8 82.5 46.8L9.6 46.8C5.6 46.8 2.1 49.3 0.7 52.9 0.3 53.8 0 54.9 0 56L0 114.6C0 115.7 0.3 116.8 0.7 117.7 2.1 121.2 5.5 123.7 9.5 123.7L82.4 123.7C87.6 123.7 91.9 119.4 91.9 114.2 91.9 109 87.6 104.7 82.4 104.7L19.2 104.7 19.2 94.9 82.5 94.9 82.5 94.6Z" fill="#FFFFFF"/><g><path d="M334.1 132.7C332.9 134.1 331.7 135.5 330.3 136.8 317 150.1 298.8 158.3 278.5 158.3 258.3 158.3 240 150.1 226.7 136.8 225.4 135.5 224.2 134.1 222.9 132.7L207.8 132.7C223.1 155.4 249 170.2 278.4 170.2 307.8 170.2 333.7 155.3 349 132.7L334.1 132.7Z" fill="#FFFFFF"/><path d="M219.6 41.7C221.8 38.7 224.1 35.9 226.7 33.3 240 20 258.3 11.9 278.6 11.9 298.8 11.9 317.1 20.1 330.4 33.4 333 36 335.4 38.9 337.5 41.8L351.8 41.8C337 16.8 309.8 0 278.6 0 247.4 0 220.2 16.8 205.4 41.8L219.6 41.8 219.6 41.7 219.6 41.7Z" fill="#FFFFFF"/></g><g><path d="M324.5 114 324.5 114C324.5 119.2 320.2 123.5 315 123.5L242.1 123.5C236.9 123.5 232.6 119.2 232.6 114 232.6 108.8 236.9 104.5 242.1 104.5L315 104.5C320.2 104.5 324.5 108.8 324.5 114Z" fill="#FFFFFF"/><path d="M324.5 56.2 324.5 56.2C324.5 61.4 320.2 65.7 315 65.7L242.1 65.7C236.9 65.7 232.6 61.4 232.6 56.2 232.6 51 236.9 46.7 242.1 46.7L315 46.7C320.2 46.6 324.5 50.9 324.5 56.2Z" fill="#FFFFFF"/><path d="M324.5 85.1 324.5 85.1C324.5 90.3 320.2 94.6 315 94.6L242.1 94.6C236.9 94.6 232.6 90.3 232.6 85.1 232.6 79.9 236.9 75.6 242.1 75.6L315 75.6C320.2 75.6 324.5 79.8 324.5 85.1Z" fill="#FFFFFF"/></g></g></svg>
+    <div class="logo-divider"></div>
+    <div class="logo-text">Finance &amp; Tax<br>Tools</div>
+  </div>
+  <div class="header-tag">Internal Use Only</div>
+</header>
 
-// --- ENTITY DATA (from WTS report + org chart) ---
-// Each entity has: name, country, entityType, standaloneRating, adjustedRating
-// adjustedRating = after implicit group support cap (max B+ for group)
-// For entities NOT in the WTS report, we assign based on entity type heuristics
+<!-- MAIN -->
+<main>
+  <h1 class="page-title">Finance Tools</h1>
+  <p class="page-subtitle">Select a tool to get started.</p>
 
-const ENTITIES = [
-// === TOP LEVEL ===
-{
-  name: "Enery Development GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: true,
-  note: "Group parent / ultimate lender"
-}, {
-  name: "Enery Power Holding GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: true
-}, {
-  name: "Enery Green CZ Holdings GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "BB-",
-  adjustedRating: "B+",
-  inReport: true
-},
-// === AUSTRIAN ENTITIES ===
-{
-  name: "Enery Österreich GmbH",
-  country: "AT",
-  type: "HoldCo & ServiceCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Green Power GmbH",
-  country: "AT",
-  type: "DevCo & ServiceCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Element GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: true
-}, {
-  name: "Enery Cetium GmbH",
-  country: "AT",
-  type: "HoldCo & OpCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "HPPV GmbH",
-  country: "AT",
-  type: "HoldCo & OpCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Industry Partnership GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Portfolio Optimization GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Power CZ Holding GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "BB",
-  adjustedRating: "B+",
-  inReport: true
-}, {
-  name: "Enery Power BG Holding GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: true
-}, {
-  name: "Enery Power SLAVIC Portfolio GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Power Estonia Holding OÜ",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Pannonia GmbH",
-  country: "AT",
-  type: "HoldCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "EneryIP 2040 GmbH",
-  country: "AT",
-  type: "HoldCo & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Sonnenfeld Neuhofen FlexCo",
-  country: "AT",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === CZECH ENTITIES ===
-{
-  name: "Enery CZ s.r.o.",
-  country: "CZ",
-  type: "HoldCo & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: true
-}, {
-  name: "Enery Services CZ s.r.o.",
-  country: "CZ",
-  type: "ServiceCo",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Solar CZ 2 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "BB",
-  adjustedRating: "B+",
-  inReport: true
-}, {
-  name: "Enery Stella CZ s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Stella CZ Project s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Energy 21 s.r.o.",
-  country: "CZ",
-  type: "OpCo",
-  standaloneRating: "BB-",
-  adjustedRating: "B+",
-  inReport: true
-}, {
-  name: "PV Rosice s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "FVE Tuchlovice s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "PV Cekanice s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "HEFRA solarpark development s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Solarpark Kameničná s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Andaine Invest a.s.",
-  country: "CZ",
-  type: "HoldCo & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Sudero s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "L – Contact Čej s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enfinity 22 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enfinity 20 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SPE Beta One s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SPE Beta Two s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Solar Power Energy Beta v.o.s.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Lassie s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery GOAT s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Enery Portfolio Optimization CZ s.r.o.",
-  country: "CZ",
-  type: "EPO",
-  standaloneRating: "B",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SPV FVE 2 s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "SPV FVE 7 s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "SPV FVE 8 s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery BD SPV A s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery BD SPV B s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery BD SPV C s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery RES s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Finch s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "TA Infrastruktura s.r.o.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Octavia a.s.",
-  country: "CZ",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Industry Partnership CZ s.r.o.",
-  country: "CZ",
-  type: "ServiceCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "SOLAR 1 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SOLAR 2 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SOLAR 3 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SOLAR 4 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SOLAR 5 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SOLAR 7 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SOLAR 8 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "SOLAR 10 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "FVE 26 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "FVE 36 s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "Solferino s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-}, {
-  name: "AlfaPark s.r.o.",
-  country: "CZ",
-  type: "SPV & OpCo",
-  standaloneRating: "B+",
-  adjustedRating: "B+",
-  inReport: false
-},
-// === BULGARIAN ENTITIES ===
-{
-  name: "Tsenovo Solar Plant EOOD",
-  country: "BG",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "Vratsa Solar Plant EOOD",
-  country: "BG",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC-",
-  adjustedRating: "CCC-",
-  inReport: true
-}, {
-  name: "DUNAV SOLAR PLANT EOOD",
-  country: "BG",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC-",
-  adjustedRating: "CCC-",
-  inReport: true
-}, {
-  name: "DUNAV SOLAR PLANT OOD",
-  country: "BG",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC-",
-  adjustedRating: "CCC-",
-  inReport: false
-}, {
-  name: "Enery Solar BG 1 EAD",
-  country: "BG",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "Enery BG 1 EOOD",
-  country: "BG",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery BG EOOD",
-  country: "BG",
-  type: "HoldCo & ServiceCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Nova Zagora BG EOOD",
-  country: "BG",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Services EAD",
-  country: "BG",
-  type: "ServiceCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Portfolio Optimization Bulgaria EAD",
-  country: "BG",
-  type: "EPO",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Industry Partnership Bulgaria EOOD",
-  country: "BG",
-  type: "ServiceCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === ROMANIAN ENTITIES ===
-{
-  name: "BABOIA SOLAR PLANT SRL",
-  country: "RO",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC+",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "SIRET SOLAR PLANT SRL",
-  country: "RO",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC+",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "ENERY ELEMENT SRL",
-  country: "RO",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "CCC",
-  inReport: true
-}, {
-  name: "COMCRIS ENERGY S.R.L.",
-  country: "RO",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "CCC",
-  inReport: false
-}, {
-  name: "EAST WIND FARM s.r.l.",
-  country: "RO",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "CCC",
-  inReport: false
-}, {
-  name: "ZAGRA HIDRO s.r.l.",
-  country: "RO",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "CCC",
-  inReport: false
-}, {
-  name: "ROTT ENERGY s.r.l.",
-  country: "RO",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "CCC",
-  inReport: false
-}, {
-  name: "Enery Operations RO s.r.l.",
-  country: "RO",
-  type: "ServiceCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery BD RO s.r.l.",
-  country: "RO",
-  type: "DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Optimizarea Portofoliului S.R.L.",
-  country: "RO",
-  type: "EPO",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Industry Partnership RO S.R.L.",
-  country: "RO",
-  type: "ServiceCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "EE PROJECT CO 2 SRL",
-  country: "RO",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "CCC",
-  inReport: false
-}, {
-  name: "nextE RO Project Gamma S.R.L.",
-  country: "RO",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "CCC",
-  inReport: false
-},
-// === ESTONIAN ENTITIES ===
-{
-  name: "Enery Estonia OÜ",
-  country: "EE",
-  type: "HoldCo",
-  standaloneRating: "CCC-",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "Kabli Energiapark OÜ",
-  country: "EE",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC-",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "Congsolar OÜ",
-  country: "EE",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Rummu Päikesepark OÜ",
-  country: "EE",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Portfolio Optimization Estonia OÜ",
-  country: "EE",
-  type: "EPO",
-  standaloneRating: "CCC-",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === POLISH ENTITIES ===
-{
-  name: "Enery Poland Nysa Sp.z.o.o.",
-  country: "PL",
-  type: "SPV & DevCo",
-  standaloneRating: "C",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "Enery Poland Barzkowice Sp.z.o.o.",
-  country: "PL",
-  type: "SPV & DevCo",
-  standaloneRating: "C",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "Enery Poland Pesca Sp.z.o.o.",
-  country: "PL",
-  type: "SPV & DevCo",
-  standaloneRating: "C",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Industry Partnership Poland Sp.z.o.o.",
-  country: "PL",
-  type: "ServiceCo",
-  standaloneRating: "C",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === SLOVAK ENTITIES ===
-{
-  name: "Enery Slovakia s.r.o.",
-  country: "SK",
-  type: "HoldCo",
-  standaloneRating: "CCC+",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "Enery Solar SK 2 a.s.",
-  country: "SK",
-  type: "HoldCo & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: true
-}, {
-  name: "Solar SK 2 a.s.",
-  country: "SK",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Solar SK 1 s.r.o.",
-  country: "SK",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "RENERGIE Solárny Park Holding SK I, a.s.",
-  country: "SK",
-  type: "HoldCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Druha slnecna s.r.o.",
-  country: "SK",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-},
-// (RENERGIE SPVs all similar)
-{
-  name: "RENERGIE Solarny park Banovce nad Ondavou s.r.o.",
-  country: "SK",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "PV Lučenec s.r.o.",
-  country: "SK",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "ZetaPark s.r.o.",
-  country: "SK",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "ZetaPark Lefantovce s.r.o.",
-  country: "SK",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "SL03 s.r.o.",
-  country: "SK",
-  type: "SPV & OpCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === LATVIAN ENTITIES ===
-{
-  name: "Enery Latvia SIA",
-  country: "LV",
-  type: "HoldCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Wind Farm One SIA",
-  country: "LV",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Wind Farm Two SIA",
-  country: "LV",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Wind Farm Three SIA",
-  country: "LV",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Wind Farm Four SIA",
-  country: "LV",
-  type: "SPV & OpCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === LITHUANIAN ENTITIES ===
-{
-  name: "Enery Lithuania UAB",
-  country: "LT",
-  type: "HoldCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Zarasai UAB",
-  country: "LT",
-  type: "SPV & DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === SLOVENIAN ENTITIES ===
-{
-  name: "Enery SLO d.o.o.",
-  country: "SI",
-  type: "HoldCo & ServiceCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "ENERY SLO BD d.o.o.",
-  country: "SI",
-  type: "DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-}, {
-  name: "Enery Development SLO d.o.o.",
-  country: "SI",
-  type: "DevCo",
-  standaloneRating: "CCC",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === HUNGARIAN ENTITIES ===
-{
-  name: "Enery Industry Partnership HU Kft.",
-  country: "HU",
-  type: "ServiceCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-},
-// === CROATIAN ENTITIES ===
-{
-  name: "Enery Industry Partnership Croatia d.o.o.",
-  country: "HR",
-  type: "ServiceCo",
-  standaloneRating: "B-",
-  adjustedRating: "B-",
-  inReport: false
-}];
+  <div class="tools-grid">
 
-// --- MEDIAN SPREADS (bps) from WTS benchmarking ---
-// Rating → Tenor → median spread in basis points
-const MEDIAN_SPREADS = {
-  "B+": {
-    "0-2": 120,
-    "2-4": 151,
-    "4-6": 196,
-    "6-10": 174
-  },
-  "B": {
-    "0-2": 120,
-    "2-4": 151,
-    "4-6": 196,
-    "6-10": 174
-  },
-  // Same cluster as B+
-  "B-": {
-    "0-2": 396,
-    "2-4": 416,
-    "4-6": 314,
-    "6-10": 339
-  },
-  "CCC+": {
-    "0-2": 399,
-    "2-4": 911,
-    "4-6": 635,
-    "6-10": 624
-  },
-  "CCC": {
-    "0-2": 399,
-    "2-4": 911,
-    "4-6": 635,
-    "6-10": 624
-  },
-  "CCC-": {
-    "0-2": 399,
-    "2-4": 911,
-    "4-6": 635,
-    "6-10": 624
-  },
-  "CC": {
-    "0-2": 399,
-    "2-4": 911,
-    "4-6": 635,
-    "6-10": 624
-  },
-  "C": {
-    "0-2": 399,
-    "2-4": 911,
-    "4-6": 635,
-    "6-10": 624
-  }
-};
+    <!-- INTEREST RATE TOOL -->
+    <a href="interest-rate-tool.html" class="tool-card tool-card--rates">
+      <div class="tool-icon">📊</div>
+      <div class="tool-name">Intercompany Loan Interest Rate Tool</div>
+      <div class="tool-desc">
+        Calculate arm's length interest rates for EUR-denominated intercompany loans. 
+        Select a borrowing entity, set loan parameters, and verify debt-to-equity ratios 
+        against the WTS transfer pricing benchmarking analysis.
+      </div>
+      <div class="tool-tags">
+        <span class="tool-tag tool-tag--green">Transfer Pricing</span>
+        <span class="tool-tag tool-tag--blue">WTS Study Nov 2025</span>
+        <span class="tool-tag tool-tag--grey">EUR Loans</span>
+      </div>
+      <div class="tool-launch">
+        Open tool
+        <span class="tool-launch-arrow">→</span>
+      </div>
+    </a>
 
-// Subordination notching: up to 2 notches down per Moody's
-const RATING_SCALE = ["B+", "B", "B-", "CCC+", "CCC", "CCC-", "CC", "C"];
-function notchDown(rating, notches) {
-  const idx = RATING_SCALE.indexOf(rating);
-  if (idx === -1) return rating;
-  const newIdx = Math.min(idx + notches, RATING_SCALE.length - 1);
-  return RATING_SCALE[newIdx];
-}
-function getLoanRating(entityRating, loanType) {
-  if (loanType === "senior") return entityRating;
-  return notchDown(entityRating, 2);
-}
+    <!-- COMPLIANCE TRACKER -->
+    <a href="compliance-tracker.html" class="tool-card tool-card--compliance">
+      <div class="tool-icon">📋</div>
+      <div class="tool-name">FS Compliance Tracker FY2025</div>
+      <div class="tool-desc">
+        Track financial statement compliance status across all Enery Group entities. 
+        Monitor filing progress, deadlines, and outstanding items for the FY2025 
+        reporting cycle.
+      </div>
+      <div class="tool-tags">
+        <span class="tool-tag tool-tag--yellow">Compliance</span>
+        <span class="tool-tag tool-tag--blue">FY2025</span>
+        <span class="tool-tag tool-tag--grey">All Entities</span>
+      </div>
+      <div class="tool-launch">
+        Open tool
+        <span class="tool-launch-arrow">→</span>
+      </div>
+    </a>
 
-// Country code to name mapping
-const COUNTRY_NAMES = {
-  AT: "Austria",
-  CZ: "Czech Republic",
-  BG: "Bulgaria",
-  RO: "Romania",
-  EE: "Estonia",
-  PL: "Poland",
-  SK: "Slovakia",
-  LV: "Latvia",
-  LT: "Lithuania",
-  SI: "Slovenia",
-  HU: "Hungary",
-  HR: "Croatia"
-};
-const COUNTRY_FLAGS = {
-  AT: "🇦🇹",
-  CZ: "🇨🇿",
-  BG: "🇧🇬",
-  RO: "🇷🇴",
-  EE: "🇪🇪",
-  PL: "🇵🇱",
-  SK: "🇸🇰",
-  LV: "🇱🇻",
-  LT: "🇱🇹",
-  SI: "🇸🇮",
-  HU: "🇭🇺",
-  HR: "🇭🇷"
-};
+  </div>
+</main>
 
-// Parse balance sheet numbers
-function parseNumber(val) {
-  if (val === "" || val === null || val === undefined) return 0;
-  const cleaned = String(val).replace(/[€,\s]/g, "");
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? 0 : num;
-}
+<!-- FOOTER -->
+<footer>
+  Enery Group · Finance &amp; Tax Tools<br>
+  For internal use only. These tools provide indicative outputs and do not constitute tax or legal advice.
+</footer>
 
-// ============================================================
-// MAIN COMPONENT
-// ============================================================
-const EneryInterestRateTool = function EneryInterestRateTool() {
-  const [step, setStep] = useState(1);
-  const [selectedEntity, setSelectedEntity] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loanType, setLoanType] = useState("senior");
-  const [tenor, setTenor] = useState("0-2");
-  const [showBS, setShowBS] = useState(false);
-
-  // Balance sheet inputs
-  const [bs, setBs] = useState({
-    cash: "",
-    accountsReceivable: "",
-    otherCurrentAssets: "",
-    fixedAssets: "",
-    otherAssets: "",
-    accountsPayable: "",
-    otherCurrentLiabilities: "",
-    longTermLiabilities: "",
-    icLoanPayable: "",
-    issuedCapital: "",
-    retainedEarnings: "",
-    netIncome: "",
-    reserves: ""
-  });
-  const [bsFileName, setBsFileName] = useState("");
-  const [bsParsedEntity, setBsParsedEntity] = useState("");
-  const [bsParsedDate, setBsParsedDate] = useState("");
-  const [bsParseError, setBsParseError] = useState("");
-  const updateBs = (key, val) => setBs(prev => ({
-    ...prev,
-    [key]: val
-  }));
-
-  // Parse NetSuite XML balance sheet
-  const parseBalanceSheet = xmlText => {
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(xmlText, "text/xml");
-      const ns = "urn:schemas-microsoft-com:office:spreadsheet";
-      const rows = doc.getElementsByTagNameNS(ns, "Row");
-
-      // Extract entity name and date from header rows
-      let entityName = "";
-      let bsDate = "";
-      const rowData = [];
-      for (let i = 0; i < rows.length; i++) {
-        const cells = rows[i].getElementsByTagNameNS(ns, "Cell");
-        const cellTexts = [];
-        for (let j = 0; j < cells.length; j++) {
-          const dataEl = cells[j].getElementsByTagNameNS(ns, "Data")[0];
-          cellTexts.push(dataEl ? dataEl.textContent : "");
-        }
-        rowData.push(cellTexts);
-
-        // Header parsing (first few rows)
-        if (i === 1 && cellTexts[0]) {
-          // "Topco : Enery Development GmbH : Enery Element GmbH : BABOIA SOLAR PLANT S.R.L."
-          const parts = cellTexts[0].split(" : ");
-          entityName = parts[parts.length - 1]?.trim() || cellTexts[0];
-        }
-        if (i === 3 && cellTexts[0]) {
-          bsDate = cellTexts[0]; // "End of Feb 2026"
-        }
-      }
-
-      // Helper: find value by label prefix
-      const findValue = labelMatch => {
-        for (const row of rowData) {
-          if (row[0] && row[0].toLowerCase().startsWith(labelMatch.toLowerCase()) && row[1]) {
-            return parseFloat(row[1]) || 0;
-          }
-        }
-        return 0;
-      };
-
-      // Helper: find value by exact label
-      const findExact = label => {
-        for (const row of rowData) {
-          if (row[0] && row[0].trim() === label && row[1]) {
-            return parseFloat(row[1]) || 0;
-          }
-        }
-        return 0;
-      };
-
-      // Helper: sum all rows containing a pattern in label
-      const sumMatching = pattern => {
-        let total = 0;
-        for (const row of rowData) {
-          if (row[0] && row[0].toLowerCase().includes(pattern.toLowerCase()) && row[1]) {
-            const val = parseFloat(row[1]);
-            if (!isNaN(val)) total += val;
-          }
-        }
-        return total;
-      };
-
-      // Extract key totals from the NetSuite structure
-      const totalBank = findExact("Total Bank");
-      const totalAR = findExact("Total Accounts Receivable");
-      const totalOtherCA = findExact("Total Other Current Asset");
-      const totalFixedAssets = findExact("Total Fixed Assets");
-      const totalOtherAssets = findExact("Total Other Assets");
-      const totalAP = findExact("Total Accounts Payable");
-      const totalOtherCL = findExact("Total Other Current Liability");
-      const totalLTL = findExact("Total Long Term Liabilities");
-
-      // IC Loan: sum all IC Loan Payable line items (not totals)
-      let icLoan = 0;
-      for (const row of rowData) {
-        if (row[0] && row[1]) {
-          const label = row[0].toLowerCase();
-          if ((label.includes("ic loan payable") || label.includes("ic loan payables")) && !label.startsWith("total")) {
-            icLoan += parseFloat(row[1]) || 0;
-          }
-        }
-      }
-
-      // Equity components
-      const issuedCapital = findValue("300000");
-      const openingBalance = findValue("3200");
-      const reservesRetained = findValue("330100");
-      const legalReserves = findValue("330190");
-      const retainedEarnings = findExact("Retained Earnings");
-      const netIncome = findExact("Net Income");
-      const totalReserves = openingBalance + reservesRetained + legalReserves;
-      setBs({
-        cash: totalBank.toString(),
-        accountsReceivable: totalAR.toString(),
-        otherCurrentAssets: totalOtherCA.toString(),
-        fixedAssets: totalFixedAssets.toString(),
-        otherAssets: totalOtherAssets.toString(),
-        accountsPayable: totalAP.toString(),
-        otherCurrentLiabilities: totalOtherCL.toString(),
-        longTermLiabilities: totalLTL.toString(),
-        icLoanPayable: icLoan.toString(),
-        issuedCapital: issuedCapital.toString(),
-        retainedEarnings: retainedEarnings.toString(),
-        netIncome: netIncome.toString(),
-        reserves: totalReserves.toString()
-      });
-      setBsParsedEntity(entityName);
-      setBsParsedDate(bsDate);
-      setBsParseError("");
-      setShowBS(true);
-    } catch (err) {
-      setBsParseError("Could not parse the file. Please ensure it's a NetSuite Balance Sheet XML/XLS export.");
-      console.error(err);
-    }
-  };
-  const handleBsUpload = e => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setBsFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = evt => {
-      const text = evt.target?.result;
-      if (typeof text === "string") {
-        parseBalanceSheet(text);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  // Computed balance sheet values
-  const bsCalc = useMemo(() => {
-    const cash = parseNumber(bs.cash);
-    const ar = parseNumber(bs.accountsReceivable);
-    const otherCA = parseNumber(bs.otherCurrentAssets);
-    const fa = parseNumber(bs.fixedAssets);
-    const otherA = parseNumber(bs.otherAssets);
-    const ap = parseNumber(bs.accountsPayable);
-    const otherCL = parseNumber(bs.otherCurrentLiabilities);
-    const ltl = parseNumber(bs.longTermLiabilities);
-    const icLoan = parseNumber(bs.icLoanPayable);
-    const capital = parseNumber(bs.issuedCapital);
-    const retained = parseNumber(bs.retainedEarnings);
-    const ni = parseNumber(bs.netIncome);
-    const res = parseNumber(bs.reserves);
-    const totalCurrentAssets = cash + ar + otherCA;
-    const totalAssets = totalCurrentAssets + fa + otherA;
-    const totalCurrentLiabilities = ap + otherCL;
-    const totalLiabilities = totalCurrentLiabilities + ltl;
-    const totalEquity = capital + retained + ni + res;
-    const totalDebt = icLoan; // IC loan is the relevant debt for ratio
-    const negativeEquity = totalEquity < 0;
-    const debtToEquity = !negativeEquity && totalEquity !== 0 ? totalDebt / totalEquity : null;
-    const equityRatioOk = !negativeEquity && debtToEquity !== null && debtToEquity <= 4;
-    const maxDeductibleDebt = !negativeEquity && totalEquity > 0 ? totalEquity * 4 : 0;
-    return {
-      totalCurrentAssets,
-      totalAssets,
-      totalCurrentLiabilities,
-      totalLiabilities,
-      totalEquity,
-      totalDebt,
-      debtToEquity,
-      equityRatioOk,
-      negativeEquity,
-      maxDeductibleDebt
-    };
-  }, [bs]);
-
-  // Filtered entities
-  const filteredEntities = useMemo(() => {
-    if (!searchTerm.trim()) return ENTITIES;
-    const lower = searchTerm.toLowerCase();
-    return ENTITIES.filter(e => e.name.toLowerCase().includes(lower) || COUNTRY_NAMES[e.country]?.toLowerCase().includes(lower) || e.country.toLowerCase() === lower);
-  }, [searchTerm]);
-
-  // Group by country for display
-  const groupedEntities = useMemo(() => {
-    const groups = {};
-    filteredEntities.forEach(e => {
-      if (!groups[e.country]) groups[e.country] = [];
-      groups[e.country].push(e);
-    });
-    // Sort countries
-    return Object.entries(groups).sort((a, b) => COUNTRY_NAMES[a[0]].localeCompare(COUNTRY_NAMES[b[0]]));
-  }, [filteredEntities]);
-
-  // Compute result
-  const result = useMemo(() => {
-    if (!selectedEntity) return null;
-    const entityRating = selectedEntity.adjustedRating;
-    const loanRating = getLoanRating(entityRating, loanType);
-    const spreadBps = MEDIAN_SPREADS[loanRating]?.[tenor] || MEDIAN_SPREADS["CCC"]?.[tenor];
-    const spreadPct = (spreadBps / 100).toFixed(2);
-    return {
-      entityRating,
-      loanRating,
-      spreadBps,
-      spreadPct
-    };
-  }, [selectedEntity, loanType, tenor]);
-
-  // Format EUR
-  const fmtEUR = val => {
-    if (val === 0 || isNaN(val)) return "€0.00";
-    return new Intl.NumberFormat("de-DE", {
-      style: "currency",
-      currency: "EUR"
-    }).format(val);
-  };
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: "'Roboto', sans-serif",
-      background: "#F5F0EB",
-      minHeight: "100vh",
-      padding: 0
-    }
-  }, /*#__PURE__*/React.createElement("style", null, `
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        input[type="text"], input[type="number"] {
-          font-family: 'Roboto', sans-serif;
-          outline: none;
-        }
-        input[type="number"]::-webkit-inner-spin-button,
-        input[type="number"]::-webkit-outer-spin-button {
-          -webkit-appearance: none; margin: 0;
-        }
-        input[type="number"] { -moz-appearance: textfield; }
-        .entity-row:hover { background: #e8f5e9 !important; }
-        .entity-row { cursor: pointer; transition: background 0.15s; }
-        .btn-primary { 
-          background: #FABE4B; color: #232D32; border: none; border-radius: 24px; 
-          padding: 12px 32px; font-weight: 700; font-size: 15px; cursor: pointer;
-          font-family: 'Roboto', sans-serif; transition: all 0.2s;
-        }
-        .btn-primary:hover { background: #e5a93e; transform: translateY(-1px); }
-        .btn-primary:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-        .btn-secondary {
-          background: #8CC896; color: white; border: none; border-radius: 24px;
-          padding: 10px 24px; font-weight: 500; font-size: 14px; cursor: pointer;
-          font-family: 'Roboto', sans-serif; transition: all 0.2s;
-        }
-        .btn-secondary:hover { background: #7ab886; }
-        .btn-outline {
-          background: transparent; color: #232D32; border: 2px solid #B9BEC3;
-          border-radius: 24px; padding: 10px 24px; font-weight: 500; font-size: 14px;
-          cursor: pointer; font-family: 'Roboto', sans-serif; transition: all 0.2s;
-        }
-        .btn-outline:hover { border-color: #8CC896; color: #8CC896; }
-        .card {
-          background: white; border-radius: 12px; border: 1px solid #B9BEC3;
-          padding: 24px; transition: box-shadow 0.2s;
-        }
-        .card:hover { box-shadow: 0 4px 16px rgba(35,45,50,0.08); }
-        .tag {
-          display: inline-block; padding: 2px 10px; border-radius: 12px;
-          font-size: 11px; font-weight: 500; letter-spacing: 0.5px;
-        }
-        .scroll-list {
-          max-height: 420px; overflow-y: auto; border: 1px solid #B9BEC3;
-          border-radius: 12px; background: white;
-        }
-        .scroll-list::-webkit-scrollbar { width: 6px; }
-        .scroll-list::-webkit-scrollbar-thumb { background: #8CC896; border-radius: 3px; }
-        .input-field {
-          width: 100%; padding: 10px 14px; border: 1px solid #B9BEC3; border-radius: 8px;
-          font-size: 14px; font-family: 'Roboto', sans-serif; transition: border 0.2s;
-        }
-        .input-field:focus { border-color: #8CC896; box-shadow: 0 0 0 3px rgba(140,200,150,0.15); }
-        .step-indicator {
-          display: flex; gap: 8px; align-items: center; margin-bottom: 32px;
-        }
-        .step-dot {
-          width: 32px; height: 32px; border-radius: 50%; display: flex;
-          align-items: center; justify-content: center; font-weight: 700;
-          font-size: 14px; transition: all 0.3s;
-        }
-        .step-line { width: 40px; height: 2px; transition: background 0.3s; }
-        .radio-group { display: flex; gap: 12px; flex-wrap: wrap; }
-        .radio-option {
-          padding: 12px 20px; border: 2px solid #B9BEC3; border-radius: 12px;
-          cursor: pointer; transition: all 0.2s; font-weight: 500; font-size: 14px;
-        }
-        .radio-option.selected {
-          border-color: #8CC896; background: rgba(140,200,150,0.1); color: #232D32;
-        }
-        .radio-option:hover { border-color: #8CC896; }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        .result-box {
-          background: linear-gradient(135deg, #232D32 0%, #465055 100%);
-          border-radius: 16px; padding: 32px; color: white;
-        }
-        .warning-box {
-          background: #FFF3CD; border: 1px solid #FABE4B; border-radius: 12px;
-          padding: 16px; display: flex; gap: 12px; align-items: flex-start;
-        }
-        .error-box {
-          background: #FDECEA; border: 1px solid #e57373; border-radius: 12px;
-          padding: 16px; display: flex; gap: 12px; align-items: flex-start;
-        }
-      `), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: "#232D32",
-      padding: "20px 32px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 16
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    viewBox: "0 0 519 170.2",
-    xmlns: "http://www.w3.org/2000/svg",
-    style: {
-      height: 36,
-      width: "auto"
-    }
-  }, /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
-    d: "M190.3 124.8 190.3 78.3C190.3 75.2 190 72.7 189.5 70.7 189 68.7 188.1 67.2 186.9 66.1 185.7 65 184 64.2 181.8 63.7 179.7 63.2 176.9 63 173.7 63L151.6 63C148.4 63 145.7 63.2 143.6 63.7 141.5 64.2 139.7 65 138.5 66.1 137.2 67.2 136.3 68.8 135.8 70.7 135.3 72.7 135 75.2 135 78.3L135 124.8 114.6 124.8 114.6 77.6C114.6 71.7 115.2 66.7 116.3 62.6 117.4 58.5 119.4 55.2 122.1 52.7 124.8 50.2 128.5 48.4 133 47.2 137.6 46.1 143.2 45.5 150.1 45.5L175 45.5C181.9 45.5 187.7 46.1 192.2 47.2 196.8 48.3 200.4 50.2 203.1 52.7 205.8 55.2 207.8 58.5 208.9 62.6 210 66.7 210.6 71.7 210.6 77.6L210.6 124.8 190.3 124.8Z",
-    fill: "#FFFFFF"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M347.2 124.8 347.2 76.6C347.2 71 347.8 66.3 349.1 62.4 350.4 58.5 352.4 55.3 355.2 52.8 358 50.3 361.6 48.5 365.9 47.3 370.3 46.1 375.6 45.5 381.9 45.5L400.4 45.5 400.4 62 382.4 62C379.6 62 377.2 62.2 375.3 62.7 373.4 63.2 371.9 63.9 370.7 65 369.6 66.1 368.7 67.6 368.2 69.5 367.7 71.4 367.5 73.8 367.5 76.7L367.5 124.7 347.2 124.7 347.2 124.8Z",
-    fill: "#FFFFFF"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M442.1 83.6C442.1 87.7 443 90.5 444.8 92.1 446.6 93.7 449.6 94.5 453.7 94.5L499.2 94.5 499.2 45.1 519 45.1 519 117.8C519 126.1 516.9 132.1 512.9 135.8 508.8 139.5 502.1 141.3 492.8 141.3L463.2 141.3 463.2 124.6 491.1 124.6C493.9 124.6 496 124.1 497.3 123 498.6 121.9 499.3 119.8 499.3 116.7L499.3 110.7 452.6 110.7C447 110.7 442.3 110.2 438.5 109.1 434.6 108.1 431.5 106.4 429.1 104.2 426.7 102 424.9 99.3 423.8 96 422.7 92.7 422.2 88.9 422.2 84.4L422.2 45.1 442.3 45.1 442.3 83.6 442.1 83.6Z",
-    fill: "#FFFFFF"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M82.5 94.6C87.7 94.6 92 90.3 92 85.1 92 79.9 87.7 75.6 82.5 75.6L19.2 75.6 19.2 65.8 82.5 65.8C87.7 65.8 92 61.5 92 56.3 92 51.1 87.7 46.8 82.5 46.8L9.6 46.8C5.6 46.8 2.1 49.3 0.7 52.9 0.3 53.8 0 54.9 0 56L0 114.6C0 115.7 0.3 116.8 0.7 117.7 2.1 121.2 5.5 123.7 9.5 123.7L82.4 123.7C87.6 123.7 91.9 119.4 91.9 114.2 91.9 109 87.6 104.7 82.4 104.7L19.2 104.7 19.2 94.9 82.5 94.9 82.5 94.6Z",
-    fill: "#FFFFFF"
-  }), /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
-    d: "M334.1 132.7C332.9 134.1 331.7 135.5 330.3 136.8 317 150.1 298.8 158.3 278.5 158.3 258.3 158.3 240 150.1 226.7 136.8 225.4 135.5 224.2 134.1 222.9 132.7L207.8 132.7C223.1 155.4 249 170.2 278.4 170.2 307.8 170.2 333.7 155.3 349 132.7L334.1 132.7Z",
-    fill: "#FFFFFF"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M219.6 41.7C221.8 38.7 224.1 35.9 226.7 33.3 240 20 258.3 11.9 278.6 11.9 298.8 11.9 317.1 20.1 330.4 33.4 333 36 335.4 38.9 337.5 41.8L351.8 41.8C337 16.8 309.8 0 278.6 0 247.4 0 220.2 16.8 205.4 41.8L219.6 41.8 219.6 41.7 219.6 41.7Z",
-    fill: "#FFFFFF"
-  })), /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
-    d: "M324.5 114 324.5 114C324.5 119.2 320.2 123.5 315 123.5L242.1 123.5C236.9 123.5 232.6 119.2 232.6 114 232.6 108.8 236.9 104.5 242.1 104.5L315 104.5C320.2 104.5 324.5 108.8 324.5 114Z",
-    fill: "#FFFFFF"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M324.5 56.2 324.5 56.2C324.5 61.4 320.2 65.7 315 65.7L242.1 65.7C236.9 65.7 232.6 61.4 232.6 56.2 232.6 51 236.9 46.7 242.1 46.7L315 46.7C320.2 46.6 324.5 50.9 324.5 56.2Z",
-    fill: "#FFFFFF"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M324.5 85.1 324.5 85.1C324.5 90.3 320.2 94.6 315 94.6L242.1 94.6C236.9 94.6 232.6 90.3 232.6 85.1 232.6 79.9 236.9 75.6 242.1 75.6L315 75.6C320.2 75.6 324.5 79.8 324.5 85.1Z",
-    fill: "#FFFFFF"
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      color: "#F5F0EB",
-      fontSize: 14,
-      fontWeight: 300,
-      opacity: 0.7,
-      borderLeft: "1px solid #465055",
-      paddingLeft: 16,
-      marginLeft: 4
-    }
-  }, "Intercompany Loan", /*#__PURE__*/React.createElement("br", null), "Interest Rate Tool")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      color: "#9196A0",
-      fontSize: 11,
-      fontWeight: 300,
-      textAlign: "right"
-    }
-  }, "Based on WTS Benchmarking Analysis", /*#__PURE__*/React.createElement("br", null), "November 2025")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: "#FABE4B",
-      padding: "8px 32px",
-      fontSize: 12,
-      fontWeight: 500,
-      color: "#232D32",
-      letterSpacing: 0.3
-    }
-  }, "\u26A0\uFE0F This tool applies exclusively to EUR-denominated intercompany loans within the Enery Group. Results are indicative and based on the WTS transfer pricing study (Nov 2025)."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxWidth: 960,
-      margin: "0 auto",
-      padding: "32px 24px"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "step-indicator"
-  }, [1, 2, 3].map(s => /*#__PURE__*/React.createElement("div", {
-    key: s,
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "step-dot",
-    style: {
-      background: step >= s ? "#8CC896" : "#B9BEC3",
-      color: step >= s ? "white" : "#6E7378"
-    }
-  }, s), s < 3 && /*#__PURE__*/React.createElement("div", {
-    className: "step-line",
-    style: {
-      background: step > s ? "#8CC896" : "#B9BEC3"
-    }
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginLeft: 12,
-      color: "#465055",
-      fontSize: 14,
-      fontWeight: 500
-    }
-  }, step === 1 ? "Select Borrower" : step === 2 ? "Loan Parameters & Balance Sheet" : "Result")), step === 1 && /*#__PURE__*/React.createElement("div", {
-    className: "fade-in"
-  }, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      color: "#232D32",
-      fontSize: 22,
-      fontWeight: 700,
-      marginBottom: 8
-    }
-  }, "Select borrowing entity"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: "#6E7378",
-      fontSize: 14,
-      marginBottom: 20
-    }
-  }, "Choose the Enery Group entity that will be the borrower of the intercompany loan."), /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    className: "input-field",
-    placeholder: "Search by entity name or country...",
-    value: searchTerm,
-    onChange: e => setSearchTerm(e.target.value),
-    style: {
-      marginBottom: 16,
-      fontSize: 15
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "scroll-list"
-  }, groupedEntities.map(([country, entities]) => /*#__PURE__*/React.createElement("div", {
-    key: country
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: "10px 20px",
-      background: "#f7f7f5",
-      borderBottom: "1px solid #e8e5e0",
-      fontSize: 13,
-      fontWeight: 700,
-      color: "#465055",
-      position: "sticky",
-      top: 0,
-      zIndex: 1
-    }
-  }, COUNTRY_FLAGS[country], " ", COUNTRY_NAMES[country]), entities.map((entity, i) => /*#__PURE__*/React.createElement("div", {
-    key: entity.name,
-    className: "entity-row",
-    onClick: () => {
-      setSelectedEntity(entity);
-      setStep(2);
-    },
-    style: {
-      padding: "12px 20px",
-      borderBottom: "1px solid #f0ede8",
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      background: selectedEntity?.name === entity.name ? "#e8f5e9" : "white"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 500,
-      color: "#232D32"
-    }
-  }, entity.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      marginTop: 2
-    }
-  }, entity.type)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    className: "tag",
-    style: {
-      background: entity.adjustedRating.startsWith("B+") ? "#e8f5e9" : entity.adjustedRating.startsWith("B-") ? "#FFF8E1" : "#FFF3CD",
-      color: entity.adjustedRating.startsWith("B+") ? "#2e7d32" : entity.adjustedRating.startsWith("B-") ? "#f57f17" : "#e65100"
-    }
-  }, entity.adjustedRating), entity.inReport && /*#__PURE__*/React.createElement("span", {
-    className: "tag",
-    style: {
-      background: "#E3F2FD",
-      color: "#1565C0"
-    }
-  }, "WTS")))))), groupedEntities.length === 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: 32,
-      textAlign: "center",
-      color: "#9196A0"
-    }
-  }, "No entities found matching \"", searchTerm, "\""))), step === 2 && selectedEntity && /*#__PURE__*/React.createElement("div", {
-    className: "fade-in"
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      marginBottom: 24,
-      flexWrap: "wrap",
-      gap: 16
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
-    style: {
-      color: "#232D32",
-      fontSize: 22,
-      fontWeight: 700,
-      marginBottom: 4
-    }
-  }, selectedEntity.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      color: "#6E7378"
-    }
-  }, COUNTRY_FLAGS[selectedEntity.country], " ", COUNTRY_NAMES[selectedEntity.country]), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#B9BEC3"
-    }
-  }, "\xB7"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      color: "#6E7378"
-    }
-  }, selectedEntity.type), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: "#B9BEC3"
-    }
-  }, "\xB7"), /*#__PURE__*/React.createElement("span", {
-    className: "tag",
-    style: {
-      background: selectedEntity.adjustedRating.startsWith("B+") ? "#e8f5e9" : selectedEntity.adjustedRating.startsWith("B-") ? "#FFF8E1" : "#FFF3CD",
-      color: selectedEntity.adjustedRating.startsWith("B+") ? "#2e7d32" : selectedEntity.adjustedRating.startsWith("B-") ? "#f57f17" : "#e65100"
-    }
-  }, "Rating: ", selectedEntity.adjustedRating))), /*#__PURE__*/React.createElement("button", {
-    className: "btn-outline",
-    onClick: () => {
-      setStep(1);
-      setSelectedEntity(null);
-    }
-  }, "\u2190 Change entity")), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      fontSize: 16,
-      fontWeight: 700,
-      color: "#232D32",
-      marginBottom: 16
-    }
-  }, "Loan Parameters"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 24
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 13,
-      fontWeight: 500,
-      color: "#465055",
-      display: "block",
-      marginBottom: 8
-    }
-  }, "Loan Type"), /*#__PURE__*/React.createElement("div", {
-    className: "radio-group"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: `radio-option ${loanType === "senior" ? "selected" : ""}`,
-    onClick: () => setLoanType("senior")
-  }, "Senior Unsecured"), /*#__PURE__*/React.createElement("div", {
-    className: `radio-option ${loanType === "subordinated" ? "selected" : ""}`,
-    onClick: () => setLoanType("subordinated")
-  }, "Subordinated"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 13,
-      fontWeight: 500,
-      color: "#465055",
-      display: "block",
-      marginBottom: 8
-    }
-  }, "Tenor (Maturity)"), /*#__PURE__*/React.createElement("div", {
-    className: "radio-group"
-  }, ["0-2", "2-4", "4-6", "6-10"].map(t => /*#__PURE__*/React.createElement("div", {
-    key: t,
-    className: `radio-option ${tenor === t ? "selected" : ""}`,
-    onClick: () => setTenor(t)
-  }, t, " years"))))), loanType === "subordinated" && /*#__PURE__*/React.createElement("div", {
-    className: "warning-box",
-    style: {
-      marginTop: 16
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 18
-    }
-  }, "\uD83D\uDCCC"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: "#6E7378"
-    }
-  }, "Subordinated loans receive a 2-notch downgrade per Moody's methodology. Entity rating ", selectedEntity.adjustedRating, " \u2192 Loan rating ", getLoanRating(selectedEntity.adjustedRating, "subordinated"), "."))), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      flexWrap: "wrap",
-      gap: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      fontSize: 16,
-      fontWeight: 700,
-      color: "#232D32",
-      marginBottom: 4
-    }
-  }, "Balance Sheet Data"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontSize: 13,
-      color: "#6E7378"
-    }
-  }, "Upload the borrower's NetSuite Balance Sheet export (.xls) to verify the 4:1 debt-to-equity ratio.")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 8,
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    className: "btn-primary",
-    style: {
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 6,
-      padding: "10px 20px",
-      fontSize: 13
-    }
-  }, "\uD83D\uDCC2 Upload Balance Sheet", /*#__PURE__*/React.createElement("input", {
-    type: "file",
-    accept: ".xls,.xml,.xlsx",
-    onChange: handleBsUpload,
-    style: {
-      display: "none"
-    }
-  })), !showBS && /*#__PURE__*/React.createElement("button", {
-    className: "btn-outline",
-    onClick: () => setShowBS(true),
-    style: {
-      fontSize: 13,
-      padding: "10px 16px"
-    }
-  }, "or enter manually"))), bsFileName && !bsParseError && /*#__PURE__*/React.createElement("div", {
-    className: "fade-in",
-    style: {
-      marginTop: 12,
-      padding: "10px 16px",
-      background: "#e8f5e9",
-      borderRadius: 8,
-      display: "flex",
-      gap: 12,
-      alignItems: "center",
-      border: "1px solid #8CC896"
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 18
-    }
-  }, "\u2705"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      fontWeight: 500,
-      color: "#2e7d32"
-    }
-  }, "Parsed: ", bsFileName), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: "#6E7378"
-    }
-  }, bsParsedEntity && `Entity: ${bsParsedEntity}`, bsParsedDate && ` · ${bsParsedDate}`))), bsParseError && /*#__PURE__*/React.createElement("div", {
-    className: "error-box",
-    style: {
-      marginTop: 12
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 16
-    }
-  }, "\u274C"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: "#c62828"
-    }
-  }, bsParseError)), showBS && /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "flex-end",
-      marginTop: 12
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "btn-outline",
-    onClick: () => setShowBS(false),
-    style: {
-      fontSize: 12,
-      padding: "6px 14px"
-    }
-  }, "Hide details")), showBS && /*#__PURE__*/React.createElement("div", {
-    className: "fade-in",
-    style: {
-      marginTop: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: "#8CC896",
-      marginBottom: 12,
-      borderBottom: "2px solid #8CC896",
-      paddingBottom: 4
-    }
-  }, "ASSETS"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      fontWeight: 500,
-      color: "#465055",
-      marginBottom: 8
-    }
-  }, "Current Assets"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr 1fr",
-      gap: 12,
-      marginBottom: 12
-    }
-  }, [["cash", "Cash / Bank"], ["accountsReceivable", "Accounts Receivable"], ["otherCurrentAssets", "Other Current Assets"]].map(([key, label]) => /*#__PURE__*/React.createElement("div", {
-    key: key
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      display: "block",
-      marginBottom: 4
-    }
-  }, label), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    className: "input-field",
-    value: bs[key],
-    onChange: e => updateBs(key, e.target.value),
-    placeholder: "\u20AC0.00",
-    style: {
-      fontSize: 13
-    }
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      fontWeight: 500,
-      color: "#465055",
-      marginBottom: 8
-    }
-  }, "Fixed & Other Assets"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 12,
-      marginBottom: 12
-    }
-  }, [["fixedAssets", "Fixed Assets (PPE, AUC, Intangibles)"], ["otherAssets", "Other Non-Current Assets"]].map(([key, label]) => /*#__PURE__*/React.createElement("div", {
-    key: key
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      display: "block",
-      marginBottom: 4
-    }
-  }, label), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    className: "input-field",
-    value: bs[key],
-    onChange: e => updateBs(key, e.target.value),
-    placeholder: "\u20AC0.00",
-    style: {
-      fontSize: 13
-    }
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: "#232D32",
-      padding: "8px 14px",
-      background: "#F5F0EB",
-      borderRadius: 8
-    }
-  }, "Total Assets: ", fmtEUR(bsCalc.totalAssets))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: "#FABE4B",
-      marginBottom: 12,
-      borderBottom: "2px solid #FABE4B",
-      paddingBottom: 4
-    }
-  }, "LIABILITIES"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr 1fr",
-      gap: 12,
-      marginBottom: 12
-    }
-  }, [["accountsPayable", "Accounts Payable"], ["otherCurrentLiabilities", "Other Current Liabilities"], ["longTermLiabilities", "Long-Term Liabilities"]].map(([key, label]) => /*#__PURE__*/React.createElement("div", {
-    key: key
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      display: "block",
-      marginBottom: 4
-    }
-  }, label), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    className: "input-field",
-    value: bs[key],
-    onChange: e => updateBs(key, e.target.value),
-    placeholder: "\u20AC0.00",
-    style: {
-      fontSize: 13
-    }
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 12
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      display: "block",
-      marginBottom: 4
-    }
-  }, "IC Loan Payable (intercompany debt \u2014 used for 4:1 ratio)"), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    className: "input-field",
-    value: bs.icLoanPayable,
-    onChange: e => updateBs("icLoanPayable", e.target.value),
-    placeholder: "\u20AC0.00",
-    style: {
-      fontSize: 13,
-      maxWidth: 340
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: "#232D32",
-      padding: "8px 14px",
-      background: "#F5F0EB",
-      borderRadius: 8
-    }
-  }, "Total Liabilities: ", fmtEUR(bsCalc.totalLiabilities))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: "#7382AA",
-      marginBottom: 12,
-      borderBottom: "2px solid #7382AA",
-      paddingBottom: 4
-    }
-  }, "EQUITY"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr 1fr 1fr",
-      gap: 12,
-      marginBottom: 12
-    }
-  }, [["issuedCapital", "Issued Capital"], ["reserves", "Reserves"], ["retainedEarnings", "Retained Earnings"], ["netIncome", "Net Income"]].map(([key, label]) => /*#__PURE__*/React.createElement("div", {
-    key: key
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      display: "block",
-      marginBottom: 4
-    }
-  }, label), /*#__PURE__*/React.createElement("input", {
-    type: "number",
-    className: "input-field",
-    value: bs[key],
-    onChange: e => updateBs(key, e.target.value),
-    placeholder: "\u20AC0.00",
-    style: {
-      fontSize: 13
-    }
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: "#232D32",
-      padding: "8px 14px",
-      background: "#F5F0EB",
-      borderRadius: 8
-    }
-  }, "Total Equity: ", fmtEUR(bsCalc.totalEquity))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: 16,
-      borderRadius: 12,
-      marginTop: 8,
-      background: bsCalc.totalEquity === 0 ? "#f5f5f5" : bsCalc.negativeEquity ? "#FDECEA" : bsCalc.equityRatioOk ? "#e8f5e9" : "#FDECEA",
-      border: `1px solid ${bsCalc.totalEquity === 0 ? "#e0e0e0" : bsCalc.negativeEquity ? "#e57373" : bsCalc.equityRatioOk ? "#8CC896" : "#e57373"}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 14,
-      color: "#232D32"
-    }
-  }, "Debt-to-Equity Ratio Check (max 4:1)"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: "#6E7378",
-      marginTop: 4
-    }
-  }, bsCalc.negativeEquity ? /*#__PURE__*/React.createElement(React.Fragment, null, "IC Loan: ", fmtEUR(bsCalc.totalDebt), " / Equity: ", fmtEUR(bsCalc.totalEquity), " \u2014 ", /*#__PURE__*/React.createElement("strong", {
-    style: {
-      color: "#c62828"
-    }
-  }, "negative equity, ratio cannot be calculated")) : bsCalc.totalEquity === 0 ? "No equity entered" : /*#__PURE__*/React.createElement(React.Fragment, null, "IC Loan: ", fmtEUR(bsCalc.totalDebt), " / Equity: ", fmtEUR(bsCalc.totalEquity), " = ", /*#__PURE__*/React.createElement("strong", null, bsCalc.debtToEquity.toFixed(2), ":1")))), bsCalc.totalEquity !== 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 28,
-      fontWeight: 700,
-      color: bsCalc.equityRatioOk && !bsCalc.negativeEquity ? "#2e7d32" : "#c62828"
-    }
-  }, bsCalc.equityRatioOk && !bsCalc.negativeEquity ? "✓" : "✗")), bsCalc.negativeEquity && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontSize: 12,
-      color: "#c62828",
-      fontWeight: 500
-    }
-  }, "\u26D4 The borrower has negative equity. An intercompany loan should not be granted under these conditions. Please consult with the tax and finance team before proceeding."), !bsCalc.negativeEquity && bsCalc.totalEquity !== 0 && !bsCalc.equityRatioOk && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontSize: 12,
-      color: "#c62828",
-      fontWeight: 500
-    }
-  }, "The IC loan (", fmtEUR(bsCalc.totalDebt), ") exceeds 4\xD7 the equity (", fmtEUR(bsCalc.totalEquity), "). Maximum deductible IC debt at 4:1 = ", fmtEUR(bsCalc.maxDeductibleDebt), ". The excess of ", fmtEUR(bsCalc.totalDebt - bsCalc.maxDeductibleDebt), " may not be deductible for tax purposes in certain jurisdictions."), !bsCalc.negativeEquity && bsCalc.totalEquity !== 0 && bsCalc.equityRatioOk && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontSize: 12,
-      color: "#2e7d32",
-      fontWeight: 500
-    }
-  }, "\u2713 Within limit. Maximum allowable IC debt at 4:1 = ", fmtEUR(bsCalc.maxDeductibleDebt), ". Remaining headroom: ", fmtEUR(bsCalc.maxDeductibleDebt - bsCalc.totalDebt), ".")))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 12,
-      justifyContent: "flex-end",
-      alignItems: "center"
-    }
-  }, showBS && bsCalc.negativeEquity && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 12,
-      color: "#c62828",
-      fontWeight: 500,
-      marginRight: 8
-    }
-  }, "\u26D4 Loan not advisable \u2014 negative equity"), /*#__PURE__*/React.createElement("button", {
-    className: "btn-outline",
-    onClick: () => setStep(1)
-  }, "\u2190 Back"), /*#__PURE__*/React.createElement("button", {
-    className: "btn-primary",
-    onClick: () => setStep(3),
-    disabled: showBS && bsCalc.negativeEquity
-  }, "Calculate Interest Rate \u2192"))), step === 3 && selectedEntity && result && /*#__PURE__*/React.createElement("div", {
-    className: "fade-in"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "result-box",
-    style: {
-      marginBottom: 24
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      fontWeight: 300,
-      color: "#B9BEC3",
-      marginBottom: 8,
-      letterSpacing: 1,
-      textTransform: "uppercase"
-    }
-  }, "Arm's Length Interest Rate"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 42,
-      fontWeight: 700,
-      color: "#FABE4B",
-      marginBottom: 4
-    }
-  }, "6M EURIBOR + ", result.spreadPct, "%"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      color: "#B9BEC3"
-    }
-  }, "Median spread: ", result.spreadBps, " basis points")), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      fontSize: 16,
-      fontWeight: 700,
-      color: "#232D32",
-      marginBottom: 16
-    }
-  }, "Calculation Details"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 16
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-      marginBottom: 4
-    }
-  }, "Borrower"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      fontWeight: 500,
-      color: "#232D32"
-    }
-  }, selectedEntity.name)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-      marginBottom: 4
-    }
-  }, "Country"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      fontWeight: 500,
-      color: "#232D32"
-    }
-  }, COUNTRY_FLAGS[selectedEntity.country], " ", COUNTRY_NAMES[selectedEntity.country])), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-      marginBottom: 4
-    }
-  }, "Entity Credit Rating (adj.)"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      fontWeight: 500,
-      color: "#232D32"
-    }
-  }, result.entityRating)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-      marginBottom: 4
-    }
-  }, "Loan-Level Rating"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      fontWeight: 500,
-      color: "#232D32"
-    }
-  }, result.loanRating, loanType === "subordinated" && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: "#f57f17",
-      marginLeft: 6
-    }
-  }, "(\u22122 notches)"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-      marginBottom: 4
-    }
-  }, "Loan Type"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      fontWeight: 500,
-      color: "#232D32"
-    }
-  }, loanType === "senior" ? "Senior Unsecured" : "Subordinated")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-      marginBottom: 4
-    }
-  }, "Tenor"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      fontWeight: 500,
-      color: "#232D32"
-    }
-  }, tenor, " years"))), showBS && bsCalc.totalEquity !== 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 20,
-      paddingTop: 16,
-      borderTop: "1px solid #e8e5e0"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      textTransform: "uppercase",
-      letterSpacing: 0.5,
-      marginBottom: 4
-    }
-  }, "Debt-to-Equity Ratio"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      fontWeight: 500,
-      color: "#232D32"
-    }
-  }, bsCalc.negativeEquity ? `N/A — Negative equity (${fmtEUR(bsCalc.totalEquity)})` : `${bsCalc.debtToEquity.toFixed(2)}:1 — IC Loan ${fmtEUR(bsCalc.totalDebt)} / Equity ${fmtEUR(bsCalc.totalEquity)}`)), /*#__PURE__*/React.createElement("span", {
-    className: "tag",
-    style: {
-      background: bsCalc.negativeEquity ? "#FDECEA" : bsCalc.equityRatioOk ? "#e8f5e9" : "#FDECEA",
-      color: bsCalc.negativeEquity ? "#c62828" : bsCalc.equityRatioOk ? "#2e7d32" : "#c62828",
-      fontSize: 13,
-      padding: "4px 14px"
-    }
-  }, bsCalc.negativeEquity ? "Negative equity ✗" : bsCalc.equityRatioOk ? "Within 4:1 limit ✓" : "Exceeds 4:1 limit ✗")), bsCalc.negativeEquity && /*#__PURE__*/React.createElement("div", {
-    className: "error-box",
-    style: {
-      marginTop: 12
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 16
-    }
-  }, "\u26D4"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: "#c62828"
-    }
-  }, "The borrower has negative equity (", fmtEUR(bsCalc.totalEquity), "). An intercompany loan should not be granted under these conditions. The 4:1 debt-to-equity ratio cannot be calculated with negative equity. Please consult with the tax and finance team.")), !bsCalc.negativeEquity && !bsCalc.equityRatioOk && /*#__PURE__*/React.createElement("div", {
-    className: "error-box",
-    style: {
-      marginTop: 12
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 16
-    }
-  }, "\u26A0\uFE0F"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: "#c62828"
-    }
-  }, "The IC loan (", fmtEUR(bsCalc.totalDebt), ") exceeds 4\xD7 the equity (", fmtEUR(bsCalc.totalEquity), "). Maximum deductible IC debt at 4:1 = ", fmtEUR(bsCalc.maxDeductibleDebt), ". Excess: ", fmtEUR(bsCalc.totalDebt - bsCalc.maxDeductibleDebt), ". Please consult with the tax team regarding thin capitalisation implications.")), !bsCalc.negativeEquity && bsCalc.equityRatioOk && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontSize: 12,
-      color: "#2e7d32",
-      fontWeight: 500
-    }
-  }, "\u2713 Max allowable IC debt at 4:1 = ", fmtEUR(bsCalc.maxDeductibleDebt), ". Headroom: ", fmtEUR(bsCalc.maxDeductibleDebt - bsCalc.totalDebt), "."))), /*#__PURE__*/React.createElement("div", {
-    className: "card",
-    style: {
-      marginBottom: 20,
-      background: "#fafaf8"
-    }
-  }, /*#__PURE__*/React.createElement("h3", {
-    style: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: "#6E7378",
-      marginBottom: 8
-    }
-  }, "Methodology"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: "#9196A0",
-      lineHeight: 1.7
-    }
-  }, "Credit ratings estimated using S&P Capital IQ Credit Analytics (PD Fundamentals Model), adjusted for implicit group support (capped at B+/B for Enery Development GmbH as group holding). Loan-level ratings account for subordination (up to 2 notches downward per Moody's guidance). Spreads derived from EUR corporate bond benchmarking using Spread-to-Worst (STW) values from Capital IQ database (384 comparable bonds).", selectedEntity.inReport ? " This entity was directly covered in the WTS study." : " This entity's rating is derived from entity type and group structure analogy.")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: 12,
-      justifyContent: "flex-end"
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "btn-outline",
-    onClick: () => setStep(2)
-  }, "\u2190 Modify Parameters"), /*#__PURE__*/React.createElement("button", {
-    className: "btn-primary",
-    onClick: () => {
-      setStep(1);
-      setSelectedEntity(null);
-      setShowBS(false);
-      setBsFileName("");
-      setBsParsedEntity("");
-      setBsParsedDate("");
-      setBsParseError("");
-      setBs({
-        cash: "",
-        accountsReceivable: "",
-        otherCurrentAssets: "",
-        fixedAssets: "",
-        otherAssets: "",
-        accountsPayable: "",
-        otherCurrentLiabilities: "",
-        longTermLiabilities: "",
-        icLoanPayable: "",
-        issuedCapital: "",
-        retainedEarnings: "",
-        netIncome: "",
-        reserves: ""
-      });
-    }
-  }, "New Calculation"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 48,
-      paddingTop: 16,
-      borderTop: "1px solid #e8e5e0",
-      textAlign: "center"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: "#9196A0",
-      lineHeight: 1.6
-    }
-  }, "Enery Group \xB7 Transfer Pricing Interest Rate Tool \xB7 Based on WTS Benchmarking Analysis (November 2025)", /*#__PURE__*/React.createElement("br", null), "For internal use only. This tool provides indicative arm's length rates and does not constitute tax advice."))));
-};
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(EneryInterestRateTool));
-  </script>
 </body>
 </html>
